@@ -3,7 +3,8 @@ from config import *
 #from debug import *
 import json
 import time
-
+import re
+from aiogram.utils import markdown
 
 # variables
 url_biling = "https://api.vultr.com/v2/billing/history"
@@ -26,6 +27,7 @@ data_instances = {
 
 name_servers = None
 id_servers = None
+remove_id = None
 
 #getting id os, concat all
 os = requests.get(url_os, headers=headers)
@@ -92,14 +94,36 @@ def get_data_instances():
 
     id_instances = [id['id'] for id in instances.json()['instances']]
     id_servers = id_instances
+    id_instances = ["ID instances: " + id for id in id_instances ]
 
-    all_servers_data = '\n'.join([f"{label}\n{region}\n{os}\n{ip}\n{power}\n" for label, region, os, ip, power in zip(label_instances, region_instances, os_instances, main_ips, power_instances)])
+    all_servers_data = '\n'.join([f"{label}\n{region}\n{os}\n{ip}\n{power}\n{id}\n" for label, region, os, ip, power, id in zip(label_instances, region_instances, os_instances, main_ips, power_instances, id_instances)])
 
     return all_servers_data
+
 
 def post_create_instances_and_get_password():
     response = requests.post(url_instances, json=data_instances, headers=headers)
     time.sleep(30)
     instance_password = response.json()["instance"]["default_password"]
-    
     return instance_password
+
+
+def delete_instances(instance_id):
+    remove_instance = url_instances + "/" + instance_id
+    response = requests.delete(remove_instance, headers=headers)
+
+
+def remove_instances_get_fullname(text,remove_id):
+    server_blocks = text.split('\n\n') 
+
+    server_dataset = []
+    for block in server_blocks:
+        if f"ID instances: {remove_id}" in block:
+            server_dataset.append(block)
+
+    if server_dataset:
+        server_dataset = "\n\n".join(server_dataset)
+    else:
+        server_dataset = None
+
+    return server_dataset

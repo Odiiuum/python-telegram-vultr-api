@@ -41,7 +41,8 @@ async def text_command(message: types.Message):
         await message.answer(check_balance())
 
     elif message.text == "Активные сервера":
-        await message.answer(get_data_instances())
+        await bot.send_message(message.chat.id,
+                            get_data_instances())
 
     elif message.text == "Настройка серверов":
         await RegistrationStates.CONF_SUBMENU.set()
@@ -115,8 +116,9 @@ async def handle_conf_region(callback_query: types.CallbackQuery, state: FSMCont
     data_instances["os_id"] = os_dict[os]
     data_instances["region"] = reversed_regions_dict[region]
 
-    keyboard = get_confirmation_keyboard()
-    await bot.send_message(callback_query.from_user.id, message_text, reply_markup=keyboard)
+    confirm_keyboard = get_confirmation_keyboard_deploy()
+    await bot.send_message(callback_query.from_user.id, message_text, 
+                            reply_markup=confirm_keyboard)
 
 
 @dp.callback_query_handler(state=RegistrationStates.CONFIRM_DATA_DEPLOY)
@@ -131,11 +133,49 @@ async def handle_confirmation(callback_query: types.CallbackQuery, state: FSMCon
         await bot.send_message(callback_query.from_user.id, f"Пароль от нового сервера: {password}")
         #time.sleep(5)
         await RegistrationStates.CONF_SUBMENU.set()
-        
 
     elif callback_query.data == "change":
         await RegistrationStates.GET_NAME_DEPLOY.set()
         await bot.send_message(callback_query.from_user.id, "Введите новое имя:")
+
+@dp.callback_query_handler(state=RegistrationStates.CHOOSE_INSTANCE_REMOVE)
+async def handle_remove_button(callback_query: types.CallbackQuery, state: FSMContext):
+    global remove_id
+    remove_button_value = callback_query.data
+
+    await state.update_data(remove_button_value=remove_button_value)
+
+    await RegistrationStates.CONFIRM_DATA_REMOVE.set()
+
+    async with state.proxy() as data:
+        remove_id = data['remove_button_value']
+
+    name_remove_instances = remove_instances_get_fullname(get_data_instances() ,remove_id)
+
+    message_text = f"Подтверди удаление инстанса:\n\n{name_remove_instances}"
+    
+    confirm_keyboard = get_confirmation_keyboard_remove()
+    await bot.send_message(callback_query.from_user.id, message_text, 
+                            reply_markup=confirm_keyboard)
+
+
+@dp.callback_query_handler(state=RegistrationStates.CONFIRM_DATA_REMOVE)
+async def handle_confirmation(callback_query: types.CallbackQuery, state: FSMContext):
+    if callback_query.data == "confirm":
+        await state.finish()
+        await callback_query.answer("Запрос отправлен")
+        #delete_instances(remove_id)
+        await bot.send_message(callback_query.from_user.id, 
+                                "Удаление сервера началось. Ты перенаправлен в меню серверов.",
+                                reply_markup=config_menu)
+        #time.sleep(5)
+        await RegistrationStates.CONF_SUBMENU.set()
+
+    elif callback_query.data == "cancel":
+        await RegistrationStates.CHOOSE_INSTANCE_REMOVE.set()
+        await bot.send_message(callback_query.from_user.id, "Выбери инстанс для удаления", 
+                                reply_markup=create_inline_keyboard(get_name_id()))
+
 
 @dp.message_handler(text="Отменить" ,state=[RegistrationStates.CHOOSE_OS_DEPLOY,
                                             RegistrationStates.CHOOSE_REGION_DEPLOY, 
@@ -146,7 +186,6 @@ async def handle_cancel(message: types.Message, state: FSMContext):
     await message.answer("Ты отменил действие. Попробуй еще раз, или выбери другую функцию",
                          reply_markup=config_menu)
     await RegistrationStates.CONF_SUBMENU.set()
-    
 
 if __name__ == '__main__':
     from aiogram import executor

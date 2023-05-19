@@ -5,7 +5,7 @@ from aiogram.types import ReplyKeyboardRemove, \
     InlineKeyboardMarkup, InlineKeyboardButton
 
 
-def get_confirmation_keyboard():
+def get_confirmation_keyboard_deploy():
     keyboard = types.InlineKeyboardMarkup()
     keyboard.row(
         types.InlineKeyboardButton("Подтвердить", callback_data="confirm"),
@@ -13,11 +13,11 @@ def get_confirmation_keyboard():
     )
     return keyboard
 
-def get_confirmation_keyboard():
+def get_confirmation_keyboard_remove():
     keyboard = types.InlineKeyboardMarkup()
     keyboard.row(
         types.InlineKeyboardButton("Подтвердить", callback_data="confirm"),
-        types.InlineKeyboardButton("Отменить", callback_data="Отменить"),
+        types.InlineKeyboardButton("Отменить", callback_data="cancel"),
     )
     return keyboard
 
@@ -76,10 +76,4 @@ def create_inline_keyboard(button_list):
     keyboard.add(*buttons)
     
     return keyboard
-
-#async def remove_keyboard(keyboard):
-#    keyboard.remove
-
-#async def remove_keyboard(keyboard):
-#    keyboard.remove_keyboard()
 
