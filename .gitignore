@@ -1,2 +1,6 @@
+
 config.py
+test.sh
+bot.db
 __pycache__/
+db/

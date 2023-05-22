@@ -9,10 +9,15 @@ import time
 from config import *
 from utils import *
 from keyboards import *
+from sqlite import *
+
 
 bot = Bot(bot_token)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
+
+async def on_startup(_):
+    await db_start()
 
 class RegistrationStates(StatesGroup):
     START = State()
@@ -33,6 +38,7 @@ async def start_command(message: types.Message):
                          reply_markup=startup_menu)
     
     await RegistrationStates.START.set()
+
 
 @dp.message_handler(content_types=["text"], state=RegistrationStates.START)
 async def text_command(message: types.Message):
@@ -122,7 +128,7 @@ async def handle_conf_region(callback_query: types.CallbackQuery, state: FSMCont
 
 
 @dp.callback_query_handler(state=RegistrationStates.CONFIRM_DATA_DEPLOY)
-async def handle_confirmation(callback_query: types.CallbackQuery, state: FSMContext):
+async def handle_confirmation_deploy(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.data == "confirm":
         await state.finish()
         await callback_query.answer("Запрос отправлен")
@@ -160,7 +166,7 @@ async def handle_remove_button(callback_query: types.CallbackQuery, state: FSMCo
 
 
 @dp.callback_query_handler(state=RegistrationStates.CONFIRM_DATA_REMOVE)
-async def handle_confirmation(callback_query: types.CallbackQuery, state: FSMContext):
+async def handle_confirmatio_remove(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.data == "confirm":
         await state.finish()
         await callback_query.answer("Запрос отправлен")
@@ -187,6 +193,9 @@ async def handle_cancel(message: types.Message, state: FSMContext):
                          reply_markup=config_menu)
     await RegistrationStates.CONF_SUBMENU.set()
 
+
+
+
 if __name__ == '__main__':
     from aiogram import executor
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

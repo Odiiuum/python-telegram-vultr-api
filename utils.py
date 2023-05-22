@@ -27,7 +27,7 @@ data_instances = {
 
 name_servers = None
 id_servers = None
-remove_id = None
+create_servers = None
 
 #getting id os, concat all
 os = requests.get(url_os, headers=headers)
@@ -71,7 +71,7 @@ def get_name_id():
     return data_name_id_dict
 
 def get_data_instances():
-    global name_servers, id_servers
+    global name_servers, id_servers, create_servers
     #getting active instances
     instances = requests.get(url_instances, headers=headers)
     #getting name instances
@@ -92,11 +92,19 @@ def get_data_instances():
     power_instances = [power['power_status'] for power in instances.json()['instances']]
     power_instances = ["Status server: " + power for power in power_instances ]
 
+    date_created_instances = [date['date_created'] for date in instances.json()['instances']]
+    dates_created = []
+    for item in date_created_instances:
+        date = item.split("T")[0]
+        dates_created.append(date)
+    create_servers = dates_created
+    date_created_instances = ["Date created: " + date for date in dates_created ]
+
     id_instances = [id['id'] for id in instances.json()['instances']]
     id_servers = id_instances
     id_instances = ["ID instances: " + id for id in id_instances ]
 
-    all_servers_data = '\n'.join([f"{label}\n{region}\n{os}\n{ip}\n{power}\n{id}\n" for label, region, os, ip, power, id in zip(label_instances, region_instances, os_instances, main_ips, power_instances, id_instances)])
+    all_servers_data = '\n'.join([f"{label}\n{region}\n{os}\n{ip}\n{power}\n{date}\n{id}\n" for label, region, os, ip, power, date, id in zip(label_instances, region_instances, os_instances, main_ips, power_instances, date_created_instances, id_instances)])
 
     return all_servers_data
 
@@ -113,7 +121,7 @@ def delete_instances(instance_id):
     response = requests.delete(remove_instance, headers=headers)
 
 
-def remove_instances_get_fullname(text,remove_id):
+def remove_instances_get_fullname(text, remove_id):
     server_blocks = text.split('\n\n') 
 
     server_dataset = []
