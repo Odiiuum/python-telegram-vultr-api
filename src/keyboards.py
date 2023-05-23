@@ -10,44 +10,38 @@ def get_menu(buttons_name_list):
     for text_button in buttons_name_list:
         button = types.KeyboardButton(text_button)
         buttons.append(button)
-
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add(*buttons)
     return keyboard
 
+# --- create inline confirm menu ---
 def get_confirmation_menu(buttons_name_list, callback_data_list):
     buttons = []
     for i, text_button in enumerate(buttons_name_list):
         callback_data = callback_data_list[i]
         button = types.InlineKeyboardButton(text_button, callback_data=callback_data)
         buttons.append(button)
-
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(*buttons)
     return keyboard
 
-# --- create os inline keyboard ---
-os_buttons = []
-for os_name, os_id in os_dict.items():
-    os_button = types.InlineKeyboardButton(os_name, callback_data=str(os_id))
-    os_buttons.append(os_button)
-            
-os_keyboard = types.InlineKeyboardMarkup()
-os_keyboard.add(*os_buttons)
-
-# --- create regions inline keyboard ---
-region_buttons = []
-for region_name, region_id in reversed_regions_dict.items():
-    region_button = types.InlineKeyboardButton(region_name, callback_data=region_id)
-    region_buttons.append(region_button)
-
-region_keyboard = types.InlineKeyboardMarkup()
-region_keyboard.add(*region_buttons)
+# --- create inline keyboard from dict ---
+def get_inline_menu(dict):
+    buttons = []
+    for name, id in dict.items():
+        region_button = types.InlineKeyboardButton(name, callback_data=id)
+        buttons.append(region_button)
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(*buttons)
+    return keyboard
 
 # --- cancel configuring instances button
-cancel_btn = types.KeyboardButton("Отменить")
-cancel_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True).add(cancel_btn)
+def get_button(name_button):
+    button = types.KeyboardButton(name_button)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True).add(button)
+    return keyboard
 
+# --- REFACTORING FUNC ---
 def create_inline_keyboard(button_list):
     buttons = []
     for item in button_list:
