@@ -1,6 +1,6 @@
 FROM python:3
 
-WORKDIR /bot/src
+WORKDIR /bot
 
 COPY requirements.txt .
 
