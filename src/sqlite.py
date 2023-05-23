@@ -3,7 +3,7 @@ import sqlite3
 async def db_start():
     global db, cur
 
-    db = sqlite3.connect("bot.db")
+    db = sqlite3.connect("db/bot.db")
     cur = db.cursor()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS servers

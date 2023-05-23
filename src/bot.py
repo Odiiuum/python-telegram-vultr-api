@@ -11,6 +11,7 @@ from utils import *
 from keyboards import *
 from sqlite import *
 
+password_ssh = None
 
 bot = Bot(bot_token)
 storage = MemoryStorage()
@@ -35,7 +36,7 @@ async def start_command(message: types.Message):
     name = message.from_user.first_name
     await dp.storage.reset_data(user=message.from_user.id)
     await message.answer(f"Привет, {name}! Чем могу помочь?",
-                         reply_markup=startup_menu)
+                         reply_markup=get_menu(main_menu))
     
     await RegistrationStates.START.set()
 
@@ -53,7 +54,7 @@ async def text_command(message: types.Message):
     elif message.text == "Настройка серверов":
         await RegistrationStates.CONF_SUBMENU.set()
         await message.answer("Выбери, что тебя интересует.",
-                         reply_markup=config_menu)
+                         reply_markup=get_menu(config_server_menu))
 
 @dp.message_handler(content_types=["text"], state=RegistrationStates.CONF_SUBMENU)
 async def handle_server_setup(message: types.Message, state: FSMContext):
@@ -73,7 +74,7 @@ async def handle_server_setup(message: types.Message, state: FSMContext):
     elif message.text == "Вернуться в главное меню":
         await RegistrationStates.START.set()
         await message.answer("Ты вернулся в главное меню.",
-                         reply_markup=startup_menu)
+                         reply_markup=get_menu(main_menu))
 
 
 @dp.message_handler(state=RegistrationStates.GET_NAME_DEPLOY)
@@ -122,21 +123,22 @@ async def handle_conf_region(callback_query: types.CallbackQuery, state: FSMCont
     data_instances["os_id"] = os_dict[os]
     data_instances["region"] = reversed_regions_dict[region]
 
-    confirm_keyboard = get_confirmation_keyboard_deploy()
+    confirm_submenu = get_confirmation_menu(confirm_submenu_name, confirm_submenu_callback)
     await bot.send_message(callback_query.from_user.id, message_text, 
-                            reply_markup=confirm_keyboard)
+                            reply_markup=confirm_submenu)
 
 
 @dp.callback_query_handler(state=RegistrationStates.CONFIRM_DATA_DEPLOY)
 async def handle_confirmation_deploy(callback_query: types.CallbackQuery, state: FSMContext):
+    global password_ssh
     if callback_query.data == "confirm":
         await state.finish()
         await callback_query.answer("Запрос отправлен")
-        password = None #post_create_instances_and_get_password()
+        password_ssh = None #post_create_instances_and_get_password()
         await bot.send_message(callback_query.from_user.id, 
                                 "Деплой сервера начался, он будет готов через одну минуту, ты перенаправлен в меню серверов.",
-                                reply_markup=config_menu)
-        await bot.send_message(callback_query.from_user.id, f"Пароль от нового сервера: {password}")
+                                reply_markup=get_menu(config_server_menu))
+        await bot.send_message(callback_query.from_user.id, f"Пароль от нового сервера: {password_ssh}")
         #time.sleep(5)
         await RegistrationStates.CONF_SUBMENU.set()
 
@@ -160,9 +162,9 @@ async def handle_remove_button(callback_query: types.CallbackQuery, state: FSMCo
 
     message_text = f"Подтверди удаление инстанса:\n\n{name_remove_instances}"
     
-    confirm_keyboard = get_confirmation_keyboard_remove()
+    cancel_submenu = get_confirmation_menu(cancel_submenu_name, cancel_submenu_callback)
     await bot.send_message(callback_query.from_user.id, message_text, 
-                            reply_markup=confirm_keyboard)
+                            reply_markup=cancel_submenu)
 
 
 @dp.callback_query_handler(state=RegistrationStates.CONFIRM_DATA_REMOVE)
@@ -173,7 +175,7 @@ async def handle_confirmatio_remove(callback_query: types.CallbackQuery, state: 
         #delete_instances(remove_id)
         await bot.send_message(callback_query.from_user.id, 
                                 "Удаление сервера началось. Ты перенаправлен в меню серверов.",
-                                reply_markup=config_menu)
+                                reply_markup=get_menu(config_server_menu))
         #time.sleep(5)
         await RegistrationStates.CONF_SUBMENU.set()
 
@@ -190,7 +192,7 @@ async def handle_confirmatio_remove(callback_query: types.CallbackQuery, state: 
 async def handle_cancel(message: types.Message, state: FSMContext):
     await state.finish()  
     await message.answer("Ты отменил действие. Попробуй еще раз, или выбери другую функцию",
-                         reply_markup=config_menu)
+                         reply_markup=get_menu(config_server_menu))
     await RegistrationStates.CONF_SUBMENU.set()
 
 

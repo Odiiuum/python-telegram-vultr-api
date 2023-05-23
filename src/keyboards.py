@@ -4,42 +4,27 @@ from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
 
+# --- create menu ---
+def get_menu(buttons_name_list):
+    buttons = []
+    for text_button in buttons_name_list:
+        button = types.KeyboardButton(text_button)
+        buttons.append(button)
 
-def get_confirmation_keyboard_deploy():
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.row(
-        types.InlineKeyboardButton("Подтвердить", callback_data="confirm"),
-        types.InlineKeyboardButton("Изменить данные", callback_data="change"),
-    )
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add(*buttons)
     return keyboard
 
-def get_confirmation_keyboard_remove():
+def get_confirmation_menu(buttons_name_list, callback_data_list):
+    buttons = []
+    for i, text_button in enumerate(buttons_name_list):
+        callback_data = callback_data_list[i]
+        button = types.InlineKeyboardButton(text_button, callback_data=callback_data)
+        buttons.append(button)
+
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.row(
-        types.InlineKeyboardButton("Подтвердить", callback_data="confirm"),
-        types.InlineKeyboardButton("Отменить", callback_data="cancel"),
-    )
+    keyboard.add(*buttons)
     return keyboard
-
-# --- startup menu buttons ---
-startup_menu_btn1 = types.KeyboardButton("Баланс счёта")
-startup_menu_btn2 = types.KeyboardButton("Активные сервера")
-startup_menu_btn3 = types.KeyboardButton("Настройка серверов")
-
-startup_menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
-startup_menu.add(startup_menu_btn1, 
-                 startup_menu_btn2, 
-                 startup_menu_btn3)
-
-# --- config_server menu buttons ---
-config_menu_btn1 = types.KeyboardButton("Деплой сервера")
-config_menu_btn2 = types.KeyboardButton("Удаление сервера")
-config_menu_btn3 = types.KeyboardButton("Вернуться в главное меню")
-
-config_menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
-config_menu.add(config_menu_btn1,
-                 config_menu_btn2, 
-                 config_menu_btn3)
 
 # --- create os inline keyboard ---
 os_buttons = []

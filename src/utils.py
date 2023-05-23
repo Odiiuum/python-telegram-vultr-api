@@ -1,9 +1,7 @@
 import requests
 from config import *
 #from debug import *
-import json
 import time
-import re
 from aiogram.utils import markdown
 
 # variables
@@ -14,7 +12,7 @@ url_regions =  "https://api.vultr.com/v2/regions"
 url_os =  "https://api.vultr.com/v2/os"
 
 #getting id os
-plan = "vc2-1c-1gb"
+plan = "vhp-1c-1gb-amd"
 
 data_instances = {
     "region": None,
@@ -28,6 +26,16 @@ data_instances = {
 name_servers = None
 id_servers = None
 create_servers = None
+
+main_menu = ["Баланс счёта", "Активные сервера", "Настройка серверов"]
+config_server_menu = ["Деплой сервера", "Удаление сервера", "Вернуться в главное меню"]
+
+confirm_submenu_name = ["Подтвердить", "Изменить"]
+confirm_submenu_callback = ["confirm", "change"]
+
+cancel_submenu_name = ["Подтвердить", "Отменить"]
+cancel_submenu_callback = ["confirm", "cancel"]
+
 
 #getting id os, concat all
 os = requests.get(url_os, headers=headers)

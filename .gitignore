@@ -1,6 +1,8 @@
-
 config.py
 test.sh
+db/
 bot.db
 __pycache__/
 db/
+.vscode/
+bash_script/
