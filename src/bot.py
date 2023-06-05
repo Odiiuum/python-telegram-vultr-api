@@ -18,11 +18,7 @@ dp = Dispatcher(bot, storage=storage)
 
 async def on_startup(_):
     await db_start()
-    date = get_date_created_instances(instances)
-    name = get_label_instances(instances)
-    id = get_id_instances(instances)
-
-    await insert_data_to_database(id, name, date)
+#    await insert_data_to_database(id, name, date)
 
 class RegistrationStates(StatesGroup):
     START = State()
