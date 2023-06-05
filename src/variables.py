@@ -16,6 +16,7 @@ data_instances = {
     "ddos_protection" : False
 }
 
+
 main_menu = ["💰 Balance Account 💰", "🆙 Active Servers 🆙", "🛠 Config Servers 🛠"]
 config_server_menu = ["🧩 Deploy new server 🧩", "❌ Delete server ❌", "⏪ Back to main menu ⏪"]
 

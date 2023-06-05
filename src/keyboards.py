@@ -28,8 +28,8 @@ def get_confirmation_menu(buttons_name_list, callback_data_list):
 # --- create inline keyboard from dict ---
 def get_inline_menu(dict):
     buttons = []
-    for name, id in dict.items():
-        region_button = types.InlineKeyboardButton(name, callback_data=id)
+    for name, key in dict.items():
+        region_button = types.InlineKeyboardButton(name, callback_data=key)
         buttons.append(region_button)
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(*buttons)

@@ -5,6 +5,13 @@ from config import *
 from variables import *
 
 
+def user_access(user_id):
+    if int(user_id) in allow_users:
+        return True
+    else:
+        return False
+    
+
 def check_balance():
     billing = requests.get(url_biling, headers=headers)
     current_balance = round(billing.json()['billing_history'][0]['balance'], 2)
@@ -16,9 +23,7 @@ def check_balance():
         current_balance_message = f"Current balance: 0💲"
     return current_balance_message
 
-def get_instances():
-    instances = requests.get(url_instances, headers=headers)
-    return instances
+instances = requests.get(url_instances, headers=headers)
 
 def get_label_instances(instances):
     labels = [label['label'] for label in instances.json()['instances']]
@@ -65,7 +70,6 @@ def get_all_servers_data(label_instances, region_instances, os_instances, main_i
     return all_servers_data
 
 def get_data_instances():
-    instances = get_instances()
     label_instances = get_label_instances(instances)
     region_instances = get_region_instances(instances)
     os_instances = get_os_instances(instances)
@@ -77,8 +81,13 @@ def get_data_instances():
     return all_servers_data
 
 # ----- REFACTORING CODE ------
-#instances = get_instances()
-#print(get_label_instances(instances))
+
+def get_remove_data(instances):
+    label_instances = [label['label'] for label in instances.json()['instances']]
+    id_instances = [id['id'] for id in instances.json()['instances']]
+    merged_dict = dict(zip(label_instances, id_instances))
+    return merged_dict
+
 
 #getting id os, concat all
 os = requests.get(url_os, headers=headers)
@@ -110,18 +119,14 @@ def delete_instances(instance_id):
     remove_instance = url_instances + "/" + instance_id
     response = requests.delete(remove_instance, headers=headers)
 
-
 def remove_instances_get_fullname(text, remove_id):
     server_blocks = text.split('\n\n') 
-
     server_dataset = []
     for block in server_blocks:
         if f"ID instances: {remove_id}" in block:
             server_dataset.append(block)
-
     if server_dataset:
         server_dataset = "\n\n".join(server_dataset)
     else:
         server_dataset = None
-
     return server_dataset

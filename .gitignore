@@ -6,3 +6,4 @@ __pycache__/
 db/
 .vscode/
 bash_script/
+debug.py
