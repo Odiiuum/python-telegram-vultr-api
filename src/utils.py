@@ -3,6 +3,7 @@ import time
 
 from config import *
 from variables import *
+from sqlite import *
 
 
 def user_access(user_id):
@@ -11,7 +12,6 @@ def user_access(user_id):
     else:
         return False
     
-
 def check_balance():
     billing = requests.get(url_biling, headers=headers)
     current_balance = round(billing.json()['billing_history'][0]['balance'], 2)
@@ -80,14 +80,13 @@ def get_data_instances():
     all_servers_data = get_all_servers_data(label_instances, region_instances, os_instances, main_ips, power_instances, date_created_instances, id_instances)
     return all_servers_data
 
-# ----- REFACTORING CODE ------
-
 def get_remove_data(instances):
     label_instances = [label['label'] for label in instances.json()['instances']]
     id_instances = [id['id'] for id in instances.json()['instances']]
     merged_dict = dict(zip(label_instances, id_instances))
     return merged_dict
 
+# ----- REFACTORING CODE ------
 
 #getting id os, concat all
 os = requests.get(url_os, headers=headers)

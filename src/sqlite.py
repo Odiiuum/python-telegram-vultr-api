@@ -7,9 +7,15 @@ async def db_start():
     cur = db.cursor()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS servers
-                (id TEXT, name TEXT, date TEXT)''')
+                (id TEXT, name TEXT, date_created TEXT)''')
     db.commit()
 
-async def create_instances(id, name, date):
-    cur.execute("INSERT INTO servers VALUES (?, ?, ?)", (id, name, date))
+async def insert_data_to_database(id_list, label_list, date_list):
+    for i in range(len(date_list)):
+        date = date_list[i].split(': ')[1]
+        label = label_list[i].split(': ')[1]
+        id = id_list[i].split(': ')[1]
+        cur.execute("INSERT INTO servers (id, name, date_created) VALUES (?, ?, ?)", (id, label, date))
+    
     db.commit()
+

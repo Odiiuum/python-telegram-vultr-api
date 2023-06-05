@@ -1,3 +1,4 @@
+import asyncio
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -17,6 +18,11 @@ dp = Dispatcher(bot, storage=storage)
 
 async def on_startup(_):
     await db_start()
+    date = get_date_created_instances(instances)
+    name = get_label_instances(instances)
+    id = get_id_instances(instances)
+
+    await insert_data_to_database(id, name, date)
 
 class RegistrationStates(StatesGroup):
     START = State()
@@ -53,7 +59,6 @@ async def text_command(message: types.Message):
         await RegistrationStates.CONF_SUBMENU.set()
         await message.answer("Choose what interests you.",
                             reply_markup=get_menu(config_server_menu))
-
 
 
 @dp.message_handler(content_types=["text"], state=RegistrationStates.CONF_SUBMENU)
@@ -185,7 +190,6 @@ async def handle_cancel(message: types.Message, state: FSMContext):
     await message.answer("You canceled the action. Try again or choose another function.",
                          reply_markup=get_menu(config_server_menu))
     await RegistrationStates.CONF_SUBMENU.set()
-
 
 
 
