@@ -16,6 +16,13 @@ data_instances = {
     "ddos_protection" : False
 }
 
+config_server = {
+    "username" : None,
+    "password" : None,
+    "ipsec" : None,
+    "subnet" : None
+}
+
 user_name = None
 user_password = None
 ipsec_key = None

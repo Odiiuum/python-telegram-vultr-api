@@ -5,8 +5,8 @@ import time
 from config import *
 
 async def ssh_upload_install_scripts(remote_host, password_ssh):
-    local_script_path = "{}\\bash_script\\config_server.sh".format(os.getcwd())
-    remote_script_path = "/root/config_server.sh"
+    local_script_path = "{}\\bash_script\\config_server.py".format(os.getcwd())
+    remote_script_path = "/root/config_server.py"
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())

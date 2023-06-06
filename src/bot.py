@@ -189,6 +189,14 @@ async def handle_get_password_server(message: types.Message, state: FSMContext):
         ipsec_key = data['ipsec_key']
         subnet_vpn = data['subnet_vpn']
 
+    global config_server
+    config_server["username"] = user_name
+    config_server["password"] = user_password
+    config_server["ipsec"] = ipsec_key
+    config_server["subnet"] = subnet_vpn
+
+    print(config_server)
+
     message_text = """
 Confirm the entered data:
 
@@ -209,7 +217,8 @@ async def handle_remove_button(callback_query: types.CallbackQuery, state: FSMCo
         await bot.send_message(callback_query.from_user.id, 
                                 "The server deployment has started, it will be ready in five minute.")
         
-        
+        #remove_ip = get_main_ips(get_instances())[-1].split(": ")[1]
+        #await ssh_upload_install_scripts(str(remove_ip), password_ssh) #upload & run scripts
 
         await RegistrationStates.CONF_SUBMENU.set()
         await bot.send_message(callback_query.from_user.id,
