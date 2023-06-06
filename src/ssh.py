@@ -1,15 +1,24 @@
 import paramiko
 import os
+import time
 
 from config import *
 
-def ssh_upload_install_scripts():
-    local_script_path = "{}\\bash_script\\test.sh".format(os.getcwd())
-    remote_script_path = "/root/"
+async def ssh_upload_install_scripts(remote_host, password_ssh):
+    local_script_path = "{}\\bash_script\\config_server.sh".format(os.getcwd())
+    remote_script_path = "/root/config_server.sh"
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(remote_host, username=username_ssh, password=password_ssh)
+
+    connected = False
+    while not connected:
+        try:
+            ssh.connect(remote_host, username=username_ssh, password=password_ssh)
+            connected = True
+        except paramiko.ssh_exception.NoValidConnectionsError:
+            print("Unable to connect. Retrying in 1 minute...")
+            time.sleep(10)
 
     sftp = ssh.open_sftp()
     sftp.put(local_script_path, remote_script_path)

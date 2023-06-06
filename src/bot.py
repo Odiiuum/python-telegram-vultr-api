@@ -1,13 +1,15 @@
 import asyncio
+import subprocess
+import time
+
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-import time
-
 from config import *
+from ssh import *
 from utils import *
 from keyboards import *
 from sqlite import *
@@ -27,6 +29,13 @@ class RegistrationStates(StatesGroup):
     CHOOSE_OS_DEPLOY = State()
     CHOOSE_REGION_DEPLOY = State()
     CONFIRM_DATA_DEPLOY = State()
+
+    GET_NAME_USER_SERVER = State()
+    GET_PASSWORD_USER_SERVER = State()
+    GET_IPSEC_KEY_SERVER = State()
+    GET_SUBNET_SERVER = State()
+    CONFIRM_DATA_SERVER = State()
+
     CHOOSE_INSTANCE_REMOVE = State()
     CONFIRM_DATA_REMOVE = State()
 
@@ -50,7 +59,7 @@ async def text_command(message: types.Message):
     if message.text == "💰 Balance Account 💰":
         await message.answer(check_balance())
     elif message.text == "🆙 Active Servers 🆙":
-        await message.answer(get_data_instances())
+        await message.answer(get_data_instances(get_instances()))
     elif message.text == "🛠 Config Servers 🛠":
         await RegistrationStates.CONF_SUBMENU.set()
         await message.answer("Choose what interests you.",
@@ -64,9 +73,9 @@ async def handle_server_setup(message: types.Message, state: FSMContext):
         await message.answer("Enter server name.", reply_markup=ReplyKeyboardRemove())
     elif message.text == "❌ Delete server ❌":
         await RegistrationStates.CHOOSE_INSTANCE_REMOVE.set()
-        await message.answer("Active Servers List:\n\n"+get_data_instances())
+        await message.answer("Active Servers List:\n\n" + get_data_instances(get_instances()))
         await message.answer("Select instance to delete:", 
-                             reply_markup=get_inline_menu(get_remove_data(instances)))
+                             reply_markup=get_inline_menu(get_remove_data(get_instances())))
         await bot.send_message(message.chat.id, 
                                 text="To go back, click the \"⛔️ Cancel ⛔️\" button.",
                                 reply_markup=get_button("⛔️ Cancel ⛔️"))
@@ -112,7 +121,7 @@ async def handle_conf_region(callback_query: types.CallbackQuery, state: FSMCont
         os = data['os']
         region = data['region']
 
-    message_text = f"Confirm the entered data:\n\nName server: {name}\nOS:{os}\nRegion:{region}"
+    message_text = f"Confirm the entered data:\n\nName server: {name}\nOS: {os}\nRegion: {region}"
     
     global data_instances
     data_instances["label"] = name
@@ -128,19 +137,88 @@ async def handle_conf_region(callback_query: types.CallbackQuery, state: FSMCont
 async def handle_confirmation_deploy(callback_query: types.CallbackQuery, state: FSMContext):
     global password_ssh
     if callback_query.data == "confirm":
-        await state.finish()
         await callback_query.answer("Requests sended")
-        password_ssh = None #create_instances_and_get_password()
+        password_ssh = None #create_instances_and_get_password() # post requests for api
+        await state.update_data(password_ssh=password_ssh)
+        await RegistrationStates.GET_NAME_USER_SERVER.set()
         await bot.send_message(callback_query.from_user.id, 
-                                "The server deployment has started, it will be ready in one minute, you are redirected to the servers menu.",
-                                reply_markup=get_menu(config_server_menu))
-        await bot.send_message(callback_query.from_user.id, f"Password on new server: {password_ssh}")
-        #time.sleep(5)
-        await RegistrationStates.CONF_SUBMENU.set()
+                               "Now you need to configure the server.")
+        await bot.send_message(callback_query.from_user.id,
+                               "Enter a username on access to server:",
+                               reply_markup=get_button("⛔️ Cancel ⛔️"))
 
     elif callback_query.data == "change":
         await RegistrationStates.GET_NAME_DEPLOY.set()
         await bot.send_message(callback_query.from_user.id, "Enter new label:")
+
+
+@dp.message_handler(state=RegistrationStates.GET_NAME_USER_SERVER)
+async def handle_get_user_server(message: types.Message, state: FSMContext):
+    user_name = message.text
+    await state.update_data(user_name=user_name)
+    await RegistrationStates.GET_PASSWORD_USER_SERVER.set()
+    await message.answer("Enter a password on access to server:") 
+ 
+
+@dp.message_handler(state=RegistrationStates.GET_PASSWORD_USER_SERVER)
+async def handle_get_password_server(message: types.Message, state: FSMContext):
+    user_password = message.text
+    await state.update_data(user_password=user_password)
+    await message.answer("Enter a IPSec key on access to server:")    
+    await RegistrationStates.GET_IPSEC_KEY_SERVER.set()
+
+
+@dp.message_handler(state=RegistrationStates.GET_IPSEC_KEY_SERVER)
+async def handle_get_password_server(message: types.Message, state: FSMContext):
+    ipsec_key = message.text
+    await state.update_data(ipsec_key=ipsec_key)
+    await message.answer("Enter a subnet to VPN server(e.g 10.100.200.100-10.100.200.200):")    
+    await RegistrationStates.GET_SUBNET_SERVER.set()
+
+
+@dp.message_handler(state=RegistrationStates.GET_SUBNET_SERVER)
+async def handle_get_password_server(message: types.Message, state: FSMContext):
+    subnet_vpn = message.text
+    await state.update_data(subnet_vpn=subnet_vpn)
+    await message.answer("Enter:")    
+    await RegistrationStates.CONFIRM_DATA_SERVER.set()
+
+    async with state.proxy() as data:
+        user_name = data['user_name']
+        user_password = data['user_password']
+        ipsec_key = data['ipsec_key']
+        subnet_vpn = data['subnet_vpn']
+
+    message_text = """
+Confirm the entered data:
+
+Username server: {}
+User password server: {}
+IPSec Key VPN: {}
+Subnet VPN server: {}
+""".format(user_name, user_password, ipsec_key, subnet_vpn)
+ 
+    confirm_submenu = get_confirmation_menu(confirm_submenu_name, confirm_submenu_callback)
+    await message.answer(message_text, reply_markup=confirm_submenu)
+
+
+@dp.callback_query_handler(state=RegistrationStates.CONFIRM_DATA_SERVER)
+async def handle_remove_button(callback_query: types.CallbackQuery, state: FSMContext):
+    if callback_query.data == "confirm":
+        await callback_query.answer("Requests sended")
+        await bot.send_message(callback_query.from_user.id, 
+                                "The server deployment has started, it will be ready in five minute.")
+        
+        
+
+        await RegistrationStates.CONF_SUBMENU.set()
+        await bot.send_message(callback_query.from_user.id,
+                               "Yot returned in the server menu.",
+                               reply_markup=get_menu(config_server_menu))
+        
+    elif callback_query.data == "change":
+        await RegistrationStates.GET_NAME_USER_SERVER.set()
+        await bot.send_message(callback_query.from_user.id, "Enter new user:")
 
 
 @dp.callback_query_handler(state=RegistrationStates.CHOOSE_INSTANCE_REMOVE)
@@ -150,7 +228,7 @@ async def handle_remove_button(callback_query: types.CallbackQuery, state: FSMCo
     await state.update_data(remove_button_value=remove_button_value)
     async with state.proxy() as data:
         remove_id = data['remove_button_value']
-    name_remove_instances = remove_instances_get_fullname(get_data_instances() ,remove_id)
+    name_remove_instances = instances_get_fullname(get_data_instances(get_instances()) ,remove_id)
     message_text = f"Confirm the deleted data:\n\n{name_remove_instances}"
     cancel_submenu = get_confirmation_menu(cancel_submenu_name, cancel_submenu_callback)
     await bot.send_message(callback_query.from_user.id, message_text, 
@@ -163,24 +241,27 @@ async def handle_confirmatio_remove(callback_query: types.CallbackQuery, state: 
     if callback_query.data == "confirm":
         await state.finish()
         await callback_query.answer("Requests sended")
-        #delete_instances(remove_id)
+        delete_instances(remove_id)
         await bot.send_message(callback_query.from_user.id, 
                                 "Server removal has begun. You are redirected to the servers menu.",
                                 reply_markup=get_menu(config_server_menu))
-        #time.sleep(5)
         await RegistrationStates.CONF_SUBMENU.set()
 
     elif callback_query.data == "cancel":
         await RegistrationStates.CHOOSE_INSTANCE_REMOVE.set()
         await bot.send_message(callback_query.from_user.id,
                                 "Select instance to delete:", 
-                                reply_markup=get_inline_menu(get_remove_data(instances)))
+                                reply_markup=get_inline_menu(get_remove_data(get_instances())))
 
 
 @dp.message_handler(text="⛔️ Cancel ⛔️" ,state=[RegistrationStates.CHOOSE_OS_DEPLOY,
                                             RegistrationStates.CHOOSE_REGION_DEPLOY, 
                                             RegistrationStates.CONFIRM_DATA_DEPLOY,
-                                            RegistrationStates.CHOOSE_INSTANCE_REMOVE])
+                                            RegistrationStates.CHOOSE_INSTANCE_REMOVE,
+                                            RegistrationStates.GET_NAME_USER_SERVER,
+                                            RegistrationStates.GET_PASSWORD_USER_SERVER,
+                                            RegistrationStates.GET_IPSEC_KEY_SERVER,
+                                            RegistrationStates.GET_SUBNET_SERVER])
 async def handle_cancel(message: types.Message, state: FSMContext):
     await state.finish()  
     await message.answer("You canceled the action. Try again or choose another function.",

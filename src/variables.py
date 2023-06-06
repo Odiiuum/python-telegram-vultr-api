@@ -16,6 +16,10 @@ data_instances = {
     "ddos_protection" : False
 }
 
+user_name = None
+user_password = None
+ipsec_key = None
+subnet_vpn = None
 
 main_menu = ["💰 Balance Account 💰", "🆙 Active Servers 🆙", "🛠 Config Servers 🛠"]
 config_server_menu = ["🧩 Deploy new server 🧩", "❌ Delete server ❌", "⏪ Back to main menu ⏪"]

@@ -23,7 +23,9 @@ def check_balance():
         current_balance_message = f"Current balance: 0💲"
     return current_balance_message
 
-instances = requests.get(url_instances, headers=headers)
+def get_instances():
+    instances = requests.get(url_instances, headers=headers)
+    return instances
 
 def get_label_instances(instances):
     labels = [label['label'] for label in instances.json()['instances']]
@@ -69,7 +71,8 @@ def get_all_servers_data(label_instances, region_instances, os_instances, main_i
     all_servers_data = '\n'.join([f"{label}\n{region}\n{os}\n{ip}\n{power}\n{date}\n{id}\n" for label, region, os, ip, power, date, id in zip(label_instances, region_instances, os_instances, main_ips, power_instances, date_created_instances, id_instances)])
     return all_servers_data
 
-def get_data_instances():
+def get_data_instances(instances):
+    instances = get_instances()
     label_instances = get_label_instances(instances)
     region_instances = get_region_instances(instances)
     os_instances = get_os_instances(instances)
@@ -110,15 +113,14 @@ for region_id, region_name in regions_dict.items():
 
 def create_instances_and_get_password():
     response = requests.post(url_instances, json=data_instances, headers=headers)
-    time.sleep(30)
     instance_password = response.json()["instance"]["default_password"]
     return instance_password
 
 def delete_instances(instance_id):
     remove_instance = url_instances + "/" + instance_id
-    response = requests.delete(remove_instance, headers=headers)
+    requests.delete(remove_instance, headers=headers)
 
-def remove_instances_get_fullname(text, remove_id):
+def instances_get_fullname(text, remove_id):
     server_blocks = text.split('\n\n') 
     server_dataset = []
     for block in server_blocks:
