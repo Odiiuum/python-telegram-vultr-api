@@ -250,7 +250,7 @@ async def handle_confirmatio_remove(callback_query: types.CallbackQuery, state: 
     if callback_query.data == "confirm":
         await state.finish()
         await callback_query.answer("Requests sended")
-        delete_instances(remove_id)
+        #delete_instances(remove_id)
         await bot.send_message(callback_query.from_user.id, 
                                 "Server removal has begun. You are redirected to the servers menu.",
                                 reply_markup=get_menu(config_server_menu))
