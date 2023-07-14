@@ -1,8 +1,22 @@
-url_biling = "https://api.vultr.com/v2/billing/history"
-url_instances = "https://api.vultr.com/v2/instances"
-url_regions =  "https://api.vultr.com/v2/regions"
-#url_plans =  "https://api.vultr.com/v2/plans"
-url_os =  "https://api.vultr.com/v2/os"
+url = {
+    "billing": "https://api.vultr.com/v2/billing/history",
+    "instances": "https://api.vultr.com/v2/instances",
+    "regions": "https://api.vultr.com/v2/regions",
+    "plans": "https://api.vultr.com/v2/plans",
+    "os": "https://api.vultr.com/v2/os"
+}
+
+url_table = {
+    "os_table": url['os'],
+    "region_table": url["regions"],
+    "plans_table": url["plans"]
+}
+
+table_data_list = [
+    "os_table",
+    "region_table",
+    "plans_table"
+]
 
 #plan instances
 plan = "vhp-1c-1gb-amd"
@@ -23,17 +37,13 @@ config_server = {
     "subnet" : None
 }
 
-user_name = None
-user_password = None
-ipsec_key = None
-subnet_vpn = None
+main_menu = ["💰 Balance Account 💰", "🆙 Active Servers 🆙", "🛠 Config Servers 🛠", ]
+server_config_menu = ["🧩 Deploy new server 🧩", "❌ Delete server ❌", "⏪ Back to main menu ⏪"]
 
-main_menu = ["💰 Balance Account 💰", "🆙 Active Servers 🆙", "🛠 Config Servers 🛠"]
-config_server_menu = ["🧩 Deploy new server 🧩", "❌ Delete server ❌", "⏪ Back to main menu ⏪"]
 
-confirm_submenu_name = ["Confirm 👍", "Change 👎"]
-confirm_submenu_callback = ["confirm", "change"]
 
-cancel_submenu_name = ["Confirm 👍", "Cancel 👎"]
+change_submenu_name = ["Confirm ✅", "Change ❓"]
+change_submenu_callback = ["confirm", "change"]
+
+cancel_submenu_name = ["Confirm ✅", "Cancel ❌"]
 cancel_submenu_callback = ["confirm", "cancel"]
-
